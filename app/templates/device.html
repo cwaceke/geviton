@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+    
+    <div class="row">
+        <div class="col-xl-2"></div>
+
+        <div class="col-xl-8 col-md-12 mb-4">
+            <h5> The last 10 messages from the device are shown</h5>
+            <table id="dataTable" class="table cell-border" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Device ID</th>
+                        <th>Time</th>
+                        <th>Data</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Water Level</th>
+                        <th>Battery %</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dataa in data %}
+                        <tr>
+                            <td>{{ dataa.device_id}}</td>
+                            <td>{{ dataa.time}}</td>
+                            <td>{{ dataa.data }}</td>
+                            <td>{{ dataa.latitude }}</td>
+                            <td>{{ dataa.longitude }}</td>
+                            <td>{{ dataa.level }}</td>
+                            <td>{{ dataa.battery}}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>    
+        </table>
+
+        </div>
+</div>
+{% endblock %}
+        
+{% block scripts %} 
+
+    <script>
+      $(document).ready( function () {
+        $('#dataTable').DataTable({
+            columns:[
+                {orderable:false, searchable: false},
+                {orderable:false, searchable: false},
+                {orderable:false, searchable: false},
+                {orderable:false, searchable: false},
+                {orderable:false, searchable: false},
+                {orderable:false, searchable: false},
+                {orderable:false, searchable: false}],
+                "paging":   false,
+                "ordering": false,
+                "info":  false,
+                "searching":false
+                
+        });
+      });
+    </script>
+{% endblock %}

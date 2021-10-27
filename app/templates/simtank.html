@@ -1,0 +1,270 @@
+
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close d-flex align-items-center justify-content-center" data-bs-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true" >&times;</span>
+        </button>
+      </div>
+      <div class="row no-gutters">
+        <div class="col-md-6 d-flex">
+          <div class="modal-body p-5 img d-flex color-1 text-center d-flex align-items-center">
+            <div class="text w-100">
+              
+              <h5>Current tank level is 2 Meters. Do you want to change it?</h5>
+             
+            </div>
+          </div>
+        </div>
+        <div class="col-md-6 d-flex">
+          <div class="modal-body p-5 img d-flex align-items-center color-2">
+            <div class="text w-100 py-0 py-md-5">
+              <h3 class="mb-4">Edit Tank Details</h3>
+              <form class="signup-form">
+                <div class="form-group mb-3">
+                  <label class="label" >Tank Height</label>
+                  <input type="number" name="edit_height" id="edit_height" class="form-control" min="1" max="5" required placeholder="2">
+                </div>
+              </form>
+              <button type="button" data-bs-dismiss="modal" id="tank_button" class="form-control btn btn-primary rounded submit px-3">Edit</button>
+              
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row pt-4">
+    <div class="col-xl-3 col-md-6">
+      <div class="card text-center mb-4 devices">
+        <div class="d-flex justify-content-between">
+            <div class="d-flex flex-row align-items-center">
+                <div class="icon"> <i class="fa fa-globe" aria-hidden="true"></i> </div>
+                <div class="ms-2 c-details">
+                    <h5 class="mb-0">Online Devices</h5> 
+                </div>
+            </div>
+        </div>
+        <div class="mt-2">
+          <ul class="list-group list-group-flush ">
+            {% for dist_device in dist_devices %}
+            
+              <li class="list-group-item ">
+                <button type="button" class="btn btn-primary rounded devices px-3" id='{{dist_device}}' >{{ dist_device}}</button>
+              </li>
+        
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  <div class="col-xl-9" id="infoDiv"> 
+    <div class='row pt-4'>
+      
+        <div class='col-xl-3 col-md-6'>
+          <div class="card text-center mb-4">
+            <div class="card-header">
+                <i class="fas fa-chart-area me-1"></i>
+                Current Water Level
+            </div>
+            <div class="card-body"><canvas id="bar-chart" width="80%" height="100"></canvas></div>
+          </div>
+          
+        </div>
+        <div class='col-xl-9'>
+          <div class="row">
+            <div class="col-xl-1"></div>
+            <div class="col-xl-5 col-md-6">
+              <div class="card text-center border-primary mb-3" style="max-width: 18rem;">
+                <div class="card-header"><h5>Device ID</h5></div>
+                <div class="card-body">
+                  <a href='#' onclick="redirect()" >
+                    <h5 class="card-title" id='device-id'> Device ID</h5>
+                  </a>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-5 col-md-6">
+              <div class="card text-center border-primary mb-3" style="max-width: 18rem;">
+                <div class="card-header" style="display: flex; justify-content: space-between;">
+                  <h5>Battery Level</h5>
+                  <i class="fa fa-battery-three-quarters" aria-hidden="true"></i>
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title" id='battery-level'> Battery % </h5>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-1"></div>
+          </div>
+          <div class="row">
+            <div class="col-xl-1"></div>
+            <div class="col-xl-5 col-md-6">
+              <div class="card text-center border-primary mb-3" style="max-width: 18rem;">
+                <div class="card-header" style="display: flex; justify-content: space-between;">
+                  <h5>Tank Height</h5>
+                  <button type="button" class="btn btn-primary" id="modalButton" data-bs-toggle="modal" data-bs-target="#detailsModal">
+                    <i class="fa fa-cog"></i>
+                  </button>
+                </div>
+                <div class="card-body">
+                  <div class="d-flex justify-content-center">
+                    <h5 class="card-title" id='tank-height'> 2 </h5>
+                    <h5 class="card-title">Meters</h5>
+                  </div>
+                    
+                </div>
+        
+              </div>
+            </div>
+
+          
+            <div class="col-xl-5 col-md-6">
+              <div class="card text-center border-primary mb-3" style="max-width: 18rem;">
+                <div class="card-header" style="display: flex; justify-content: space-between;">
+                  <h5>Current Water Level</h5>
+                </div>
+                <div class="card-body">
+                  <h5 class="card-title" id='level'> </h5>
+                </div>
+              </div>
+            </div>
+            <div class="col-xl-1"></div>
+          </div>
+ 
+    </div>
+    <div class='row justify-content-md-center mb-4' >
+      <div id="map" style="height: 400px; width:80%"></div>
+    </div>
+  </div>
+  </div>
+</div>
+
+
+{% endblock %}
+{% block scripts %} 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script>
+  function redirect (){
+      var devId=$('#device-id').html();
+      window.location.href="{{ url_for( 'device', device_id=devId ) }}"+devId; };
+
+</script>
+
+<script type=text/javascript>
+$(document).ready(function(){
+    $('#detailsModal').modal('show'); 
+    $('#tank_button').click(function(){  
+           max = $('#edit_height').val();  
+           $('#tank-height').text(max).show();
+    });
+
+    $('button.devices').click(function() {
+     
+       var devId= this.id;
+        $.ajax({
+             data :{device: devId},
+             type : 'POST',
+             url : '/process',
+             success: function (response) {
+                 appendData(response);
+                 appendMap(response);
+                 appendChart(response);
+                 
+             }
+            })
+    });
+
+    function appendData(dataReceived){
+        var variation=(dataReceived.level)/1000;
+        console.log(variation);
+
+        var maxLocal=$('#tank-height').html();
+
+        console.log(maxLocal);
+        $('#level').text(parseFloat(maxLocal)-variation) .show();
+        
+        $('#device-id').text(dataReceived.device).show();
+
+        $('#battery-level').text(dataReceived.battery+" %").show();
+        //$('#location').text(dataReceived.latitude+" , "+ dataReceived.longitude).show();
+    };
+
+    function appendMap(dataReceived){
+        // The first parameter are the coordinates of the center of the map
+        // The second parameter is the zoom level
+        var lat=dataReceived.latitude;
+        var longtd=dataReceived.longitude;
+
+        var container = L.DomUtil.get('map'); 
+        if(container != null){ container._leaflet_id = null; }
+            
+        
+        var map = L.map('map').setView([lat, longtd], 13);
+            
+            // {s}, {z}, {x} and {y} are placeholders for map tiles
+            // {x} and {y} are the x/y of where you are on the map
+            // {z} is the zoom level
+            // {s} is the subdomain of cartodb
+        var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+            });
+            
+        L.marker([lat, longtd]).addTo(map)
+            .bindPopup("<strong>Current Device Location</strong>").openPopup();
+
+            // Now add the layer onto the map
+        map.addLayer(layer);
+    };
+
+    function appendChart(dataReceived){
+        var lvlData=dataReceived.level;
+        var max=$('#tank-height').html();
+        var remainingWater=parseFloat(max)-parseFloat(lvlData/1000)
+        let chartStatus = Chart.getChart("bar-chart"); // <canvas> id
+        if (chartStatus != undefined) {chartStatus.destroy();}
+        var bar_ctx=$('#bar-chart');
+        var bar_chart = new Chart(bar_ctx, {
+            type: 'bar',
+            data: {
+            labels: ['Water Level'],
+            datasets: [{
+                label:"Current tank level",
+                data: [remainingWater*1000],
+                backgroundColor: " rgb(152, 179, 253)",
+            }]
+            },
+            options: {
+            legend: {
+                display: false
+            },
+            tooltips: {
+                enabled: false
+            },
+            scales: {
+                xAxes: [{
+                display: false,
+                stacked: true
+                }],
+                yAxes: [{
+                display: false,
+                stacked: true,
+                
+                }],
+            } // scales
+            } // options
+        });
+
+    };
+});
+
+</script>
+    
+{% endblock %}

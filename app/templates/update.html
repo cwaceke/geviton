@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+    
+    <div class="row">
+        <div class="col-xl-2"></div>
+
+        <div class="col-xl-8 col-md-12 mb-4">
+            <h5> The last 10 messages from the device are shown</h5>
+            <table id="dataTable" class="table cell-border" style="width:100%">
+                <thead>
+                    <tr>
+                        <th>Project Name</th>
+                        <th>Delete</th>
+                        <th>Edit</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for dist_project in dist_projects %}
+                        <tr>
+                            <td>{{ dist_project}}</td>
+                            <td><a href="{{url_for('deleteProject', prjName=dist_project) }}">Delete Project</a></td>
+                            <td>Edit</td>
+                            
+                        </tr>
+                    {% endfor %}
+                </tbody>    
+        </table>
+
+        </div>
+</div>
+{% endblock %}
+        
+{% block scripts %} 
+
+    <script>
+      $(document).ready( function () {
+        $('#dataTable').DataTable({
+            columns:[
+                {orderable:false, searchable: True},
+                {orderable:false, searchable: false},
+                {orderable:false, searchable: false},
+                ],
+               
+                "ordering": false,
+                "info":  false,
+                
+                
+        });
+      });
+    </script>
+{% endblock %}
