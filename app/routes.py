@@ -1,13 +1,13 @@
-from app import app, db
+from app import app, db, mail
 from flask import request, render_template, jsonify, flash, url_for, redirect,session
 from datetime import datetime
 from pytz import timezone
 import json
 from app.models import Data, User, Project
-from app.forms import  RegistrationDetails, TankDetails,  RegistrationDetails, LoginDetails, ProjectDetails
+from app.forms import  RegistrationDetails,ResetEmail, ResetPassword,  RegistrationDetails, LoginDetails, ProjectDetails, InviteUser
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, current_user, logout_user, login_required
-
+from flask_mail import Message
 
 
 def getDate():
@@ -15,8 +15,6 @@ def getDate():
     now_date=datetime.now().astimezone(nai)
     d= now_date.strftime("%m/%d/%y, %H:%M")
     return d
-
-
 
 
 def locationPin (testString):
@@ -98,6 +96,7 @@ def login():
 
     #check if form is submitted and collect data
     if request.method=='POST' and login.validate_on_submit():
+        #check if user exists
         user = User.query.filter_by(email = request.form['email_field']).first()
         if user:
             # if user exist in database than we will compare our database hased password and password come from login form 
@@ -108,7 +107,7 @@ def login():
 
             else:
                 # if password is in correct , redirect to login page
-                flash('Username or Password Incorrect','danger')
+                flash('Username or Password Incorrect','warning')
 
                 return redirect(url_for('login'))
     return render_template('login.html', login=login)
@@ -120,10 +119,47 @@ def logout():
     # redirecting to home page
     return redirect(url_for('login'))
 
-@app.route('/password')
-def password():
-    
-    return render_template('password.html')
+def send_reset_email(user):
+    token=user.get_reset_token()
+    msg=Message('Password Reset Request', sender='noreply@gondor.com',recipients=[user.email])
+
+    msg.body=f'''To reset your password, visit the following link:
+{ url_for('reset_token', token=token, _external=True)}  
+
+
+If you did not make this request then simply ignore this email and no changes will be made      
+'''
+    mail.send(msg)
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_request():
+    if current_user.is_authenticated:
+        return redirect (url_for('index'))
+    resetRequest=ResetEmail()
+    if resetRequest.validate_on_submit():
+        user=User.query.filter_by(email=resetRequest.email_field.data).first()
+        #send the email
+        send_reset_email(user)
+        flash('An email has been sent to you with a reset token.','info')
+        return redirect(url_for('login'))
+    return render_template('password_request.html', resetRequest=resetRequest)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect (url_for('index'))
+    user=User.verify_reset_token(token)
+    if user is None:
+        flash('The token is invalid or expired', 'warning')
+        return redirect(url_for('reset_request'))
+    resetPassword=ResetPassword()  
+    if resetPassword.validate_on_submit():
+        hashed_password=generate_password_hash(request.form['password'], method='sha256')
+        password=hashed_password
+        db.session.commit()
+        flash('Your password has been updated. You are now able to log in', 'success')
+        return redirect(url_for('login'))  
+    return render_template('password_reset.html', resetPassword=resetPassword)
 
 #home page
 @app.route('/')
@@ -142,17 +178,31 @@ def index():
 @app.route('/waterMeterWithGPS/<prjName>', methods=['POST','GET'])
 @login_required
 def waterGPS(prjName):
+  
     #get all data with the project name we want in a list
-    tank_details=TankDetails()
+    
     all_devices=db.session.query(Data.device_id).distinct()
     dist_devices= [r.device_id for r in all_devices.filter(Data.project_name==prjName).all()]
-    return render_template('simtank.html', dist_devices=dist_devices, tank_details=tank_details)
+    return render_template('simtank.html', dist_devices=dist_devices)
+
+def send_invite_email(user, project):
+    msg=Message('Project Invite', sender='noreply@gondor.com',recipients=[user.email])
+
+    msg.body=f'''You have been invited to view the project,{project}. Visit the following link to create your account:
+{ url_for('signup', _external=True)}  
+
+
+If you do not know anything about this project, then simply ignore this email and no changes will be made      
+'''
+    mail.send(msg)
 
 @app.route('/customize', methods=['POST','GET'])
 @login_required
 def customize():
    
     project_details=ProjectDetails()
+    
+    invite_user=InviteUser()
     
     if request.method=='POST':
             
@@ -182,10 +232,24 @@ def customize():
                 
                 return render_template('index.html')
                     #getting the base URL
+        
 
-    return render_template('customize.html', project_details=project_details)
 
+    return render_template('customize.html', project_details=project_details, invite_user=invite_user)
 
+app.route('/invite_user', methods=['GET', 'POST'])
+def invite_user():
+ 
+    #check the role of the sender
+    #Get the project that the admin is adding them to from dropdown
+    resetPassword=ResetPassword()  
+    if resetPassword.validate_on_submit():
+        hashed_password=generate_password_hash(request.form['password'], method='sha256')
+        password=hashed_password
+        db.session.commit()
+        flash('Your password has been updated. You are now able to log in', 'success')
+        return redirect(url_for('login'))  
+    return render_template('password_reset.html', resetPassword=resetPassword)
    
 
 @app.route('/update')

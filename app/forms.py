@@ -16,8 +16,8 @@ class ProjectDetails(FlaskForm):
         project = Project.query.filter_by(project_name=project_name.data).first()
         if project:
             raise ValidationError('That project name is taken. Please choose a different one.')
-class TankDetails(FlaskForm):
-    tank_height=IntegerField('Tank Height',[DataRequired(), NumberRange(min=0, max=5.0, message="Value is out of range")])
+class InviteUser(FlaskForm):
+    email=StringField('Email',[DataRequired(),Email()])
 
 
 class RegistrationDetails(FlaskForm):
@@ -39,3 +39,20 @@ class RegistrationDetails(FlaskForm):
 class LoginDetails (FlaskForm):
     email_field=StringField('Email',[DataRequired(), Email()])
     password=PasswordField('Password', [DataRequired()])
+    def validate_email_field(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is None:
+            raise ValidationError('That email is not registered. Sign up to continue')
+
+
+class ResetEmail (FlaskForm):
+    email_field=StringField('Email',[DataRequired(), Email()])
+
+    def validate_email_field(self, email):
+        user = User.query.filter_by(email=email.data).first()
+        if user is None:
+            raise ValidationError('There is no account with that email. You must register to continue')
+
+class ResetPassword(FlaskForm):
+    password=PasswordField('Password', [DataRequired(message="Please fill out this field")])
+    password_confirm=PasswordField(' Confirm Password ', [DataRequired(),EqualTo(fieldname="password", message="Your Passwords Do Not Match")] )

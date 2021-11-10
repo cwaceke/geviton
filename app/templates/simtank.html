@@ -15,18 +15,20 @@
         <div class="col-md-6 d-flex">
           <div class="modal-body p-5 img d-flex color-1 text-center d-flex align-items-center">
             <div class="text w-100">
-              
-              <h5>Current tank level is 2 Meters. Do you want to change it?</h5>
-             
+              <h5>Current tank level is 2 Meters.</h5>
+              <div class="icon" font-size="10vw">
+                <span class="fa-regular fa-tank-water"></span>
+              </div>
             </div>
           </div>
         </div>
         <div class="col-md-6 d-flex">
           <div class="modal-body p-5 img d-flex align-items-center color-2">
             <div class="text w-100 py-0 py-md-5">
-              <h3 class="mb-4">Edit Tank Details</h3>
+              <h3 class="mb-4">Change Tank Height</h3>
               <form class="signup-form">
-                <div class="form-group mb-3">
+                <div class="form-group">
+                  
                   <label class="label" >Tank Height</label>
                   <input type="number" name="edit_height" id="edit_height" class="form-control" min="1" max="5" required placeholder="2">
                 </div>
@@ -43,7 +45,7 @@
 
 <div class="row pt-4">
     <div class="col-xl-3 col-md-6">
-      <div class="card text-center mb-4 devices">
+      <div class="card text-center mb-4 borderless-cards">
         <div class="d-flex justify-content-between">
             <div class="d-flex flex-row align-items-center">
                 <div class="icon"> <i class="fa fa-globe" aria-hidden="true"></i> </div>
@@ -69,7 +71,7 @@
     <div class='row pt-4'>
       
         <div class='col-xl-3 col-md-6'>
-          <div class="card text-center mb-4">
+          <div class="card text-center mb-4"height="40">
             <div class="card-header">
                 <i class="fas fa-chart-area me-1"></i>
                 Current Water Level
@@ -82,7 +84,7 @@
           <div class="row">
             <div class="col-xl-1"></div>
             <div class="col-xl-5 col-md-6">
-              <div class="card text-center border-primary mb-3" style="max-width: 18rem;">
+              <div class="card text-center mb-3" style="max-width: 18rem;">
                 <div class="card-header"><h5>Device ID</h5></div>
                 <div class="card-body">
                   <a href='#' onclick="redirect()" >
@@ -92,7 +94,7 @@
               </div>
             </div>
             <div class="col-xl-5 col-md-6">
-              <div class="card text-center border-primary mb-3" style="max-width: 18rem;">
+              <div class="card text-center mb-3" style="max-width: 18rem;">
                 <div class="card-header" style="display: flex; justify-content: space-between;">
                   <h5>Battery Level</h5>
                   <i class="fa fa-battery-three-quarters" aria-hidden="true"></i>
@@ -107,7 +109,7 @@
           <div class="row">
             <div class="col-xl-1"></div>
             <div class="col-xl-5 col-md-6">
-              <div class="card text-center border-primary mb-3" style="max-width: 18rem;">
+              <div class="card text-center mb-3" style="max-width: 18rem;">
                 <div class="card-header" style="display: flex; justify-content: space-between;">
                   <h5>Tank Height</h5>
                   <button type="button" class="btn btn-primary" id="modalButton" data-bs-toggle="modal" data-bs-target="#detailsModal">
@@ -127,7 +129,7 @@
 
           
             <div class="col-xl-5 col-md-6">
-              <div class="card text-center border-primary mb-3" style="max-width: 18rem;">
+              <div class="card text-center mb-3" style="max-width: 18rem;">
                 <div class="card-header" style="display: flex; justify-content: space-between;">
                   <h5>Current Water Level</h5>
                 </div>
@@ -155,6 +157,8 @@
   function redirect (){
       var devId=$('#device-id').html();
       window.location.href="{{ url_for( 'device', device_id=devId ) }}"+devId; };
+  
+  
 
 </script>
 
@@ -162,8 +166,14 @@
 $(document).ready(function(){
     $('#detailsModal').modal('show'); 
     $('#tank_button').click(function(){  
-           max = $('#edit_height').val();  
-           $('#tank-height').text(max).show();
+           max = $('#edit_height').val(); 
+           if (max < 1 || max > 5){
+              $('#detailsModal').modal('show');
+            
+           }else{
+              $('#tank-height').text(max).show();
+           }
+           
     });
 
     $('button.devices').click(function() {

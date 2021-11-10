@@ -1,8 +1,8 @@
 
-from app import db, admin, login_manager
+from app import db, admin, login_manager, app
 from flask_admin.contrib.sqla import ModelView
 from flask_login import UserMixin
-
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -21,7 +21,7 @@ class Data(db.Model):
     level=db.Column(db.Integer)
     
     
-       
+    
 
     def __repr__(self):
         return "<Data(device_id='{}',project='{}', time='{}', payload_data='{}')>"\
@@ -36,6 +36,8 @@ class Project(db.Model):
     def __init__(self, project_name, ownerId):
         self.project_name = project_name
         self.ownerId = ownerId
+
+    
 
     def __repr__(self):
         return f"Project(self.project_name, self.ownerId)"
@@ -54,6 +56,20 @@ class User(db.Model, UserMixin):
     def __repr__(self):
 
         return f"User(self.username, self.email)"
+
+ 
+    def get_reset_token(self, expires_sec=1800):
+        s=Serializer(app.config['SECRET_KEY'], expires_sec)
+        return s.dumps({'user_id':self.id}).decode('utf-8')
+        
+    @staticmethod
+    def verify_reset_token(token):
+        s=Serializer(app.config['SECRET_KEY'])
+        try:
+            user_id=s.loads(token)['user_id']
+        except:
+            return None
+        return User.query.get(user_id)
 
 
 

@@ -8,41 +8,74 @@
 
         </div>
         <div class="col-xl-6 col-md-8 mb-4">
-            <h2 class="title">Create New Project</h2>
-            <br>
+            <div class='row'>
+                <h2 class="title mt-5">Create New Project</h2>
+                <br>
+                
+                <form method="POST" action="{{url_for('customize')}}">
+                    {{ project_details.hidden_tag() }}
+                    <div class='form-floating mb-3' >
+                        <fieldset class="form-field">
+                            {{project_details.device_type.label(class="form-label")}}
+                            {{project_details.device_type(class="form-text form-control", id="device_type")}}
             
-            <form method="POST" action="{{url_for('customize')}}">
-                {{ project_details.hidden_tag() }}
-                <div class='form-floating mb-3' >
-                    <fieldset class="form-field">
-                        {{project_details.device_type.label(class="form-label")}}
-                        {{project_details.device_type(class="form-text form-control", id="device_type")}}
+                        </fieldset>
+                    </div>
+                    
+                    <div class='form-floating mb-3'>
         
-                    </fieldset>
-                </div>
-                
-                <div class='form-floating mb-3'>
-    
-                    <fieldset class="form-field">  
-                        {{project_details.project_name.label(class="form-label")}}
-                        {% if project_details.project_name.errors %}
-                            {{ project_details.project_name(class="form-control form-control-lg is-invalid") }}
-                            <div class="invalid-feedback">
-                                {% for error in project_details.project_name.errors %}
-                                    <span>{{ error }}</span>
-                                {% endfor %}
-                            </div>
-                        {% else %}
-                            {{ project_details.project_name(class="form-control ")}}
-                        {% endif %} 
-                    </fieldset>
-                
-                </div> 
-                <div class='form-floating mb-3'>
-                    <button class="btn btn-primary" type='submit'>Create New Project</button>
-                </div>
-            </form>
+                        <fieldset class="form-field">  
+                            {{project_details.project_name.label(class="form-label")}}
+                            {% if project_details.project_name.errors %}
+                                {{ project_details.project_name(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in project_details.project_name.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ project_details.project_name(class="form-control ")}}
+                            {% endif %} 
+                        </fieldset>
+                    
+                    </div> 
+                    <div class='form-floating mb-3'>
+                        <button class="btn btn-primary" type='submit'>Create New Project</button>
+                    </div>
+                </form>
+            </div>  
+            <div class='row'>
+                <h4 class="title mt-5">Invite people to your project</h4>
+
+                <form method="POST" action="{{url_for('customize')}}">
+                    {{ invite_user.hidden_tag() }}
+                    <div class='form-floating mb-3'>
+        
+                        <fieldset class="form-field">  
+                            {{invite_user.email.label(class="form-label")}}
+                            {% if invite_user.email.errors %}
+                                {{ invite_user.email(class="form-control form-control-lg is-invalid") }}
+                                <div class="invalid-feedback">
+                                    {% for error in invite_user.email.errors %}
+                                        <span>{{ error }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                {{ invite_user.email(class="form-control ")}}
+                            {% endif %} 
+                        </fieldset>
+                    
+                    </div> 
+                    <div class='form-floating mb-3'>
+                        <button class="btn btn-primary" type='submit'>Send Email</button>
+                    </div>
+                </form>
+            </div>          
+            
+            
         </div>
+
+        
         <div class="col-xl-3"></div>
         
     </div>

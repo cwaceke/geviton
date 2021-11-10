@@ -5,13 +5,18 @@ from flask_migrate import Migrate
 import os
 from flask_login import LoginManager
 from flask_assets import Environment, Bundle
-
+from flask_mail import Mail
 
 
 app=Flask(__name__)
-#This is the URL for the migrations db 
-#app.config['SQLALCHEMY_DATABASE_URI']='postgresql://waceke:1234BN@localhost:5432/simtank_new'
 app.config.from_object(os.environ['APP_SETTINGS'])
+app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
+app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'cwaceke22@gmail.com'
+app.config['MAIL_PASSWORD'] = 'Marigo22'
+mail = Mail(app)
 
 # 3 slashes is a rel
 #now to initialise our dB
@@ -24,26 +29,6 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 
-assets=Environment(app)
-assets.url=app.static_url_path
-
-ASSETS_DEBUG = False
-ASSETS_AUTO_BUILD = True
-scss_all=Bundle("scss/style.scss",
-                filters='libsass, cssmin',
-                depends=('**/*.scss') ,  
-                output="gen/home.%(version)s.css")
-
-
-
-css_all=Bundle("https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css",
-                "css/styles.css",
-                filters='cssmin',
-                output="gen/bootstrap.%(version)s.css")
-
-
-assets.register("scss", scss_all)
-assets.register("css",css_all)
 
 
 from app import routes
