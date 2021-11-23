@@ -1,69 +1,25 @@
-from app import app, db, mail
-from flask import request, render_template, jsonify, flash, url_for, redirect,session
-from datetime import datetime
-from pytz import timezone
+
+from app import app, db
+from flask import request, g, current_app, render_template, jsonify, flash, url_for, redirect,session
 import json
 from app.models import Data, User, Project
-from app.forms import  RegistrationDetails,ResetEmail, ResetPassword,  RegistrationDetails, LoginDetails, ProjectDetails, InviteUser
+from app.forms import  RegistrationDetails,ResetEmail, ResetPassword,  RegistrationDetails, ProjectRegistrationDetails, LoginDetails, ProjectDetails, InviteUser
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_breadcrumbs import register_breadcrumb
+from app.email import send_invite_email, send_reset_email
+from app.payloadDecode import getDate, locationPin, battery, level
 from flask_login import login_user, current_user, logout_user, login_required
-from flask_mail import Message
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from functools import wraps
 
-
-def getDate():
-    nai = timezone('Africa/Nairobi')
-    now_date=datetime.now().astimezone(nai)
-    d= now_date.strftime("%m/%d/%y, %H:%M")
-    return d
-
-
-def locationPin (testString):
-    polarityHex=testString[2:4]
-    polarityInt=int(polarityHex, base=16)
-    if (polarityInt==0):
-        latitudePosition='-'
-        longitudePosition='-'
-    elif(polarityInt==1):
-        latitudePosition="-"
-        longitudePosition="+"
-    elif(polarityInt==10):
-        latitudePosition="+"
-        longitudePosition="-"
-    elif(polarityInt==11):
-        latitudePosition="+"
-        longitudePosition="+"
-    else:
-        print("Polarity not defined")
-  
-
-    # getting the latitude
-
-    latitudeHex=testString[4:12]
-    latitudeInt=int(latitudeHex,base=16)
-    latitudeOriginal=float(latitudeInt/1000000)
-    lat=latitudePosition+str(latitudeOriginal)
-
-    #getting the longitude
-    longitudeHex=testString[12:20]
-    longitudeInt=int(longitudeHex,base=16)
-    longitudeOriginal=float(longitudeInt/1000000)
-    long=longitudePosition+str(longitudeOriginal) 
-
-    return lat, long
-
-def battery (testString):
-
-    N=2
-    length= len(testString)
-
-    batteryhex=testString[length - N: ]
-    batteryInt=int(batteryhex, base=16)
-    return batteryInt
-
-def level (testString):
-    levelhex=testString[2:6]
-    levelInt=int(levelhex, base=16)
-    return levelInt
+def admin_required(func):
+    @wraps(func)
+    def decorated_view(*args, **kwargs):
+        if current_user.admin != True:
+            flash ("You don't have permission to access this resource.", "warning")
+            return redirect(url_for('index'))
+        return func(*args,**kwargs)
+    return decorated_view
 
 #signup, login and logout
 @app.route('/signup', methods=['POST', 'GET'])
@@ -72,13 +28,13 @@ def signup():
         return redirect (url_for('index'))
 
     registration=RegistrationDetails()
-
     #if form is submitted,  collect data and add it to db
     if request.method=='POST' and registration.validate_on_submit():
         hashed_password=generate_password_hash(request.form['password'], method='sha256')
         new_user=User(
             username=request.form['username'],
             email=request.form['email_field'],
+            admin=True,
             password=hashed_password)
         db.session.add(new_user)
         db.session.commit()
@@ -87,11 +43,34 @@ def signup():
 
     return render_template('signup.html', registration=registration)
 
+@app.route('/signup/project/<token>', methods=['POST', 'GET'])
+def signup_project(token):
+    #get project name
+    user_project=confirm_invite_token(token)
+    #Get the project
+    target_project=Project.query.filter(Project.project_name==user_project).first()
+
+    registration=ProjectRegistrationDetails()
+    #if form is submitted,  collect data and add it to db
+    if request.method=='POST' and registration.validate_on_submit():
+        hashed_password=generate_password_hash(request.form['password'], method='sha256')
+        new_user=User(
+            username=request.form['username'],
+            email=request.form['email_field'],
+            admin=False,
+            password=hashed_password)
+        new_user.projects.append(target_project)
+        db.session.add(new_user)
+        db.session.commit()
+        flash('You have successfully registered', 'info')
+        return redirect(url_for('login'))
+
+    return render_template('signup_project.html', registration=registration)
+
 @app.route('/login', methods=['POST', 'GET'])
 def login():
     if current_user.is_authenticated:
         return redirect (url_for('index'))
-
     login=LoginDetails()
 
     #check if form is submitted and collect data
@@ -99,16 +78,15 @@ def login():
         #check if user exists
         user = User.query.filter_by(email = request.form['email_field']).first()
         if user:
-            # if user exist in database than we will compare our database hased password and password come from login form 
+            
+            # if user exist in database than we will compare our database hased password and password coming from login form 
             if check_password_hash(user.password, request.form['password']):
                 # if password is matched, allow user to access and save email and username inside the session
                 login_user(user, remember=True)
                 return redirect(url_for('index'))
-
             else:
                 # if password is in correct , redirect to login page
                 flash('Username or Password Incorrect','warning')
-
                 return redirect(url_for('login'))
     return render_template('login.html', login=login)
     
@@ -119,17 +97,6 @@ def logout():
     # redirecting to home page
     return redirect(url_for('login'))
 
-def send_reset_email(user):
-    token=user.get_reset_token()
-    msg=Message('Password Reset Request', sender='noreply@gondor.com',recipients=[user.email])
-
-    msg.body=f'''To reset your password, visit the following link:
-{ url_for('reset_token', token=token, _external=True)}  
-
-
-If you did not make this request then simply ignore this email and no changes will be made      
-'''
-    mail.send(msg)
 
 @app.route('/reset_password', methods=['GET', 'POST'])
 def reset_request():
@@ -139,13 +106,14 @@ def reset_request():
     if resetRequest.validate_on_submit():
         user=User.query.filter_by(email=resetRequest.email_field.data).first()
         #send the email
-        send_reset_email(user)
+        if user:
+            send_reset_email(user)
         flash('An email has been sent to you with a reset token.','info')
         return redirect(url_for('login'))
     return render_template('password_request.html', resetRequest=resetRequest)
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
-def reset_token(token):
+def reset_password(token):
     if current_user.is_authenticated:
         return redirect (url_for('index'))
     user=User.verify_reset_token(token)
@@ -155,7 +123,7 @@ def reset_token(token):
     resetPassword=ResetPassword()  
     if resetPassword.validate_on_submit():
         hashed_password=generate_password_hash(request.form['password'], method='sha256')
-        password=hashed_password
+        user.password=hashed_password
         db.session.commit()
         flash('Your password has been updated. You are now able to log in', 'success')
         return redirect(url_for('login'))  
@@ -163,19 +131,22 @@ def reset_token(token):
 
 #home page
 @app.route('/')
+@register_breadcrumb(app, '.', 'Home')
 @login_required
 def index():
     #get logged in user
     userId=current_user.id
-    #get the user projects
-    dist_projects=[r.project_name for r in Project.query.filter(Project.ownerId==userId).all()]
+   
+    dist_projects=[r.project_name for r in Project.query.join(User.projects).filter(User.id==userId).all()]
 
-    #dist_projects= [r.project_name for r in db.session.query(Data.project_name).distinct()]
     return render_template('index.html', dist_projects=dist_projects )
 
-
+def view_prj_dlc(*args, **kwargs):
+    prj_name = request.view_args['prjName']
+    return [{'text': prj_name, 'url': prj_name}]
 
 @app.route('/waterMeterWithGPS/<prjName>', methods=['POST','GET'])
+@register_breadcrumb(app, '.waterMeterWithGPS', '',dynamic_list_constructor=view_prj_dlc)
 @login_required
 def waterGPS(prjName):
   
@@ -185,24 +156,15 @@ def waterGPS(prjName):
     dist_devices= [r.device_id for r in all_devices.filter(Data.project_name==prjName).all()]
     return render_template('simtank.html', dist_devices=dist_devices)
 
-def send_invite_email(user, project):
-    msg=Message('Project Invite', sender='noreply@gondor.com',recipients=[user.email])
 
-    msg.body=f'''You have been invited to view the project,{project}. Visit the following link to create your account:
-{ url_for('signup', _external=True)}  
-
-
-If you do not know anything about this project, then simply ignore this email and no changes will be made      
-'''
-    mail.send(msg)
 
 @app.route('/customize', methods=['POST','GET'])
+@register_breadcrumb(app, '.customize', 'Customize')
 @login_required
+@admin_required
 def customize():
    
     project_details=ProjectDetails()
-    
-    invite_user=InviteUser()
     
     if request.method=='POST':
             
@@ -214,16 +176,18 @@ def customize():
             if (deviceType=='waterLevelGPS'):
                 base=request.url_root
                 base=base[:-1]
-               
-
+            
                 #generate a callback URL for the client to use and flash it
                 message="The api callback URL is  " + base + url_for('confirmationWaterGPS', prjName=projectName)
                 flash(message, 'success')
 
                 #add the project to the db and its related 
                 if current_user.is_authenticated:
-                
-                    new_project=Project(project_name=projectName,ownerId=current_user.id)
+                    new_project=Project(project_name=projectName)
+                    project_owner=User.query.filter_by(id=current_user.id).first()
+                    print(current_user)
+                    print(project_owner)
+                    new_project.users.append(project_owner)
                     db.session.add(new_project)
                     db.session.commit()
                     
@@ -233,23 +197,51 @@ def customize():
                 return render_template('index.html')
                     #getting the base URL
         
+    return render_template('customize.html', project_details=project_details)
+
+    
+    
+@app.errorhandler(401)
+def unauthorized(error):
+    flash('You need to be an administrator to log in to this page', 'warning')
+    return redirect(url_for('login', next=request.path))
 
 
-    return render_template('customize.html', project_details=project_details, invite_user=invite_user)
+def confirm_invite_token(token, expiration=7200):
+    serializer=Serializer(app.config['SECRET_KEY'])
+    try:
+        project=serializer.loads(token, salt=app.config['SECURITY_PASSWORD_SALT'])
+    except:
+        return None
+    return project
 
-app.route('/invite_user', methods=['GET', 'POST'])
+@app.route('/invite_user', methods=['GET', 'POST'])
+@register_breadcrumb(app, '.invite', 'invite user')
+@login_required
+@admin_required
 def invite_user():
- 
-    #check the role of the sender
-    #Get the project that the admin is adding them to from dropdown
-    resetPassword=ResetPassword()  
-    if resetPassword.validate_on_submit():
-        hashed_password=generate_password_hash(request.form['password'], method='sha256')
-        password=hashed_password
-        db.session.commit()
-        flash('Your password has been updated. You are now able to log in', 'success')
-        return redirect(url_for('login'))  
-    return render_template('password_reset.html', resetPassword=resetPassword)
+    #get current user's project
+    admin_user_id=current_user.id
+    
+    first_project=Project.query.join(User.projects).filter(User.id==admin_user_id).first()
+
+    invite_user=InviteUser()
+
+    if request.method=='POST' and invite_user.validate_on_submit():
+        #get the email of a new user
+        new_user_email=request.form['email']
+        # check if email exists and then append the project name
+        user=User.query.filter_by(email=new_user_email).first()
+        if user:
+            #add the project to their list
+            user.projects.append(first_project)
+            db.session.commit()
+        # if not user, send invite
+        else:
+            send_invite_email(new_user_email, first_project.project_name)
+        flash('The invite has been sent.', 'success')
+        return redirect(url_for('index'))  
+    return render_template('invite.html', invite_user=invite_user)
    
 
 @app.route('/update')

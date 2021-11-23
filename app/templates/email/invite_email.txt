@@ -1,0 +1,13 @@
+Hello,
+
+You have been invited to view project {{project}} metrics.
+
+Click the link below to signup.
+
+{{ url_for('signup_project', token=token, _external=True) }}
+
+If you don't know anything about the project, please ignore this email.
+
+Sincerely,
+
+The Geviton Dashboard Team

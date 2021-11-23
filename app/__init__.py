@@ -1,34 +1,31 @@
 from flask import Flask
+from flask.helpers import url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_admin import Admin
-from flask_migrate import Migrate
+from flask_migrate import Migrate, current
 import os
 from flask_login import LoginManager
-from flask_assets import Environment, Bundle
+from flask_breadcrumbs import Breadcrumbs
 from flask_mail import Mail
 
 
 app=Flask(__name__)
 app.config.from_object(os.environ['APP_SETTINGS'])
-app.config['SECRET_KEY'] = '5791628bb0b13ce0c676dfde280ba245'
-app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'cwaceke22@gmail.com'
-app.config['MAIL_PASSWORD'] = 'Marigo22'
-mail = Mail(app)
 
-# 3 slashes is a rel
-#now to initialise our dB
 db=SQLAlchemy(app)
 
+#initialize Mail
+mail = Mail(app)
 
+#initialize Flask-Admin
 admin=Admin(app)
 
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
+#initialize Breadcrumbs
 
+breadcrumbs=Breadcrumbs(app=app)
 
 
 from app import routes

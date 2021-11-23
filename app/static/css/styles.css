@@ -4034,8 +4034,6 @@ textarea.form-control-lg {
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
 }
 .navbar > .container,
 .navbar > .container-fluid,
@@ -4775,13 +4773,48 @@ textarea.form-control-lg {
   border-radius: 0;
 }
 
-.breadcrumb {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 0 0;
-  margin-bottom: 1rem;
-  list-style: none;
+.arrows { white-space: nowrap; }
+.arrows li {
+    display: inline-block;
+    line-height: 20px;
+    margin: 0 9px 0 -10px;
+    padding: 0 20px;
+    position: relative;
 }
+.arrows li::before,
+.arrows li::after {
+    border-right: 1px solid #1b2a49;
+    content: '';
+    display: block;
+    height: 50%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: -1;
+    transform: skewX(45deg);   
+}
+.arrows li::after {
+    bottom: 0;
+    top: auto;
+    transform: skewX(-45deg);
+}
+
+.arrows li:last-of-type::before, 
+.arrows li:last-of-type::after { 
+    display: none; 
+}
+
+.arrows li a { 
+   font: bold 15px Sans-Serif;  
+   letter-spacing: -1px; 
+   text-decoration: none;
+}
+
+.arrows li:nth-of-type(1) a { color: hsl(0, 0%, 20%); } 
+.arrows li:nth-of-type(2) a { color: hsl(0, 0%, 35%); } 
+.arrows li:nth-of-type(3) a { color: hsl(0, 0%, 50%); } 
+.arrows li:nth-of-type(4) a { color: hsl(0, 0%, 65%); } 
 
 .breadcrumb-item + .breadcrumb-item {
   padding-left: 0.5rem;
@@ -4912,6 +4945,7 @@ textarea.form-control-lg {
   margin-bottom: 1rem;
   border: 1px solid transparent;
   border-radius: 0.25rem;
+  text-align: center;
 }
 
 .alert-heading {
@@ -11084,14 +11118,14 @@ body {
   z-index: 1038;
 }
 .sb-nav-fixed #layoutSidenav #layoutSidenav_nav .sb-sidenav {
-  padding-top: 56px;
+  padding-top: 10px;
 }
 .sb-nav-fixed #layoutSidenav #layoutSidenav_nav .sb-sidenav .sb-sidenav-menu {
   overflow-y: auto;
 }
 .sb-nav-fixed #layoutSidenav #layoutSidenav_content {
   padding-left: 225px;
-  top: 56px;
+  top: 10px;
 }
 
 #layoutError {
@@ -11204,7 +11238,7 @@ body {
   color: #fff;
 }
 .sb-sidenav-dark .sb-sidenav-footer {
-  background-color: #343a40;
+  background-color: #1b2a49;
 }
 
 .sb-sidenav-light {
@@ -11233,7 +11267,7 @@ body {
   color: #0d6efd;
 }
 .sb-sidenav-light .sb-sidenav-footer {
-  background-color: #e9ecef;
+  background-color: #1b2a49;
 }
 
 .dataTable-wrapper .dataTable-container {
@@ -11414,8 +11448,8 @@ body {
 
 .login-dark .illustration {
   text-align:center;
-  padding:15px 0 20px;
-  font-size:100px;
+  padding:10px 0 10px;
+  font-size:80px;
   color:#5eb7b7;
 }
 
