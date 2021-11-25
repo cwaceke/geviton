@@ -9,7 +9,7 @@ class Config(object):
     TESTING = False
     CSRF_ENABLED = True
     SECRET_KEY = 'this-really-needs-to-be-changed'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')#.replace("://", "ql://", 1)
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL').replace("://", "ql://", 1)
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     SECURITY_PASSWORD_SALT='secretsalt__'
     MAIL_SERVER = 'smtp.gmail.com',
