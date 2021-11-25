@@ -66,7 +66,8 @@ class Project(db.Model):
     users=db.relationship('User',secondary=ownership,back_populates="projects")
 
     def __repr__(self):
-        return f"Project(self.project_name)"
+
+        return "<Project {}>".format(self.project_name)
 
 admin.add_view(ModelView(Data, db.session))
 admin.add_view(ModelView(User, db.session))
