@@ -1,13 +1,11 @@
 <p>Hello,</p>
 <p>
     You have been invited to view the project {{ project }} metrics. 
-    Click here to sign up.
-    <a href="{{ url_for('signup_project', token=token, _external=True) }}">
-       
-    </a>.
+    
+    <a href="{{ url_for('signup_project', token=token, _external=True) }}">Click here to sign up.</a>.
 </p>
 <p>Alternatively, you can paste the following link in your browser's address bar:</p>
 <p>{{ url_for('signup_project', token=token, _external=True) }}</p>
-<p>If you have not requested a password reset simply ignore this message.</p>
+<p>If you have no idea about this project, please ignore the message.</p>
 <p>Sincerely,</p>
-<p>The Geviton Dashboard Team</p>
+<p>The {{project}} Team</p>

@@ -1,8 +1,10 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, IntegerField
+from wtforms import StringField, SelectField 
 from wtforms.fields.simple import PasswordField
-from wtforms.validators import DataRequired, Email, ValidationError, Length, EqualTo, NumberRange
+from wtforms.validators import DataRequired, Email, ValidationError, Length, EqualTo
+from wtforms_sqlalchemy.fields import QuerySelectField
 from app.models import User, Project, Data
+from flask_login import current_user
 
 class ProjectDetails(FlaskForm):
     device_type=SelectField('Device Type',[DataRequired()],
@@ -17,7 +19,10 @@ class ProjectDetails(FlaskForm):
         if project:
             raise ValidationError('That project name is taken. Please choose a different one.')
 
+def choice_query():
+    return Project.query.join(User.projects).filter(User.id==current_user.id).all()
 class InviteUser(FlaskForm):
+    projects=QuerySelectField(query_factory=choice_query, allow_blank=True)
     email=StringField('Email',[DataRequired(),Email()])
 
 

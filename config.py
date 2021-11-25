@@ -9,14 +9,15 @@ class Config(object):
     TESTING = False
     CSRF_ENABLED = True
     SECRET_KEY = 'this-really-needs-to-be-changed'
-    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL').replace("://", "ql://", 1)
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')#.replace("://", "ql://", 1)
     SQLALCHEMY_TRACK_MODIFICATIONS = True
     SECURITY_PASSWORD_SALT='secretsalt__'
-    MAIL_SERVER = 'smtp.googlemail.com'
-    MAIL_PORT = 587
-    MAIL_USE_TLS = True
+    MAIL_SERVER = 'smtp.gmail.com',
+    MAIL_PORT = 465,
+    MAIL_USE_TLS = False,
+    MAIL_USE_SSL = True,
     MAIL_USERNAME = 'dashboardtester490@gmail.com'
-    MAIL_PASSWORD = 'readmenow@gmail.com'
+    MAIL_PASSWORD = 'readmenow'
 
 
 class ProductionConfig(Config):

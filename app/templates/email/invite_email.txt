@@ -10,4 +10,4 @@ If you don't know anything about the project, please ignore this email.
 
 Sincerely,
 
-The Geviton Dashboard Team
+The {{project}} Team

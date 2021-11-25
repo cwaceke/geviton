@@ -24,7 +24,7 @@
         <div id="layoutSidenav">
             <div id="layoutSidenav_nav">
                 <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
-                    <a href="/" class="d-flex align-items-center text-white mb-3 mb-md-0 me-md-auto text-decoration-none">
+                    <a href="/" class="d-flex align-items-center text-white mb-3 ml-md-3 me-md-auto text-decoration-none">
                         <span class="fs-4">Geviton</span>
                       </a>
                     <div class="sb-sidenav-menu">
@@ -41,11 +41,16 @@
                                 </nav>
                                 {% endfor %}
                             </div>
-                            
+                           
                             <a class="nav-link" href="{{url_for('customize')}}">
                                 <div class="sb-nav-link-icon"><i class="fas fa-cog"></i></div>
                                 Customize
                             </a>
+                            <a class="nav-link" href="{{url_for('customize')}}">
+                                <div class="sb-nav-link-icon"> <i class="fas fa-envelope"></i></div>
+                                Invite Others
+                            </a>
+
                         
 
                         </div>
@@ -76,11 +81,18 @@
                             {% endwith %}
                         
                         </div>
-                        <div class="mt-2">
-                            <ul class="arrows">
-                            {% for breadcrumb in breadcrumbs %}
-                                <li><a id="breadcrumb-link" href="{{ breadcrumb.url }}">{{ breadcrumb.text }}</a></li>
-                            {%- endfor -%}
+                        <div class="row d-flex justify-content-between mt-2">
+                            <div class="col-1">
+                                <button class="btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
+                            </div>
+                            <div class="col-11">
+                                <ul class="arrows">
+                                    {% for breadcrumb in breadcrumbs %}
+                                        <li><a id="breadcrumb-link" href="{{ breadcrumb.url }}">{{ breadcrumb.text }}</a></li>
+                                    {%- endfor -%}
+                                </ul>
+                            </div>
+                            
                         </div>	
                         {% block content %}{% endblock %}
                     </div>
