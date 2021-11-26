@@ -43,7 +43,7 @@ class User(db.Model, UserMixin):
 
     def __repr__(self):
 
-        return f"User(self.username, self.email)"
+        return "({},{}})".format(self.username, self.email)
 
  
     def get_reset_token(self, expires_sec=1800):
@@ -67,7 +67,7 @@ class Project(db.Model):
 
     def __repr__(self):
 
-        return "<Project {}>".format(self.project_name)
+        return "{}".format(self.project_name)
 
 admin.add_view(ModelView(Data, db.session))
 admin.add_view(ModelView(User, db.session))

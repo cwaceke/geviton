@@ -220,17 +220,15 @@ def confirm_invite_token(token, expiration=7200):
 @login_required
 @admin_required
 def invite_user():
-    #get current user's project
-    admin_user_id=current_user.id
-    
-    #first_project=Project.query.join(User.projects).filter(User.id==admin_user_id).first()
-
+  
     invite_user=InviteUser()
 
     if request.method=='POST' and invite_user.validate_on_submit():
         #get the email of a new user
-        first_project=request.form['projects']
+        prj=int(request.form['projects'])
         new_user_email=request.form['email']
+        first_project=Project.query.filter(Project.id==prj).first()
+        
         # check if email exists and then append the project name
         user=User.query.filter_by(email=new_user_email).first()
         if user:
