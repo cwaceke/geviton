@@ -1,4 +1,5 @@
 from datetime import datetime
+from logging import lastResort
 from pytz import timezone
 
 def getDate():
@@ -31,13 +32,13 @@ def locationPin (testString):
 
     latitudeHex=testString[4:12]
     latitudeInt=int(latitudeHex,base=16)
-    latitudeOriginal=float(latitudeInt/1000000)
+    latitudeOriginal=float(latitudeInt/10000000)
     lat=latitudePosition+str(latitudeOriginal)
 
     #getting the longitude
     longitudeHex=testString[12:20]
     longitudeInt=int(longitudeHex,base=16)
-    longitudeOriginal=float(longitudeInt/1000000)
+    longitudeOriginal=float(longitudeInt/10000000)
     long=longitudePosition+str(longitudeOriginal) 
 
     return lat, long
@@ -55,3 +56,17 @@ def level (testString):
     levelhex=testString[2:6]
     levelInt=int(levelhex, base=16)
     return levelInt
+
+
+def surveyDecode( testString):
+    #check if tampered with
+    tampered=testString[ :2]
+    tamperedInt=int(tampered, base=16)
+    if (tamperedInt==31):
+        tamperedBool=True
+    elif (tamperedInt==16):
+        tamperedBool=False
+    #get the location also
+    latSurvey, longSurvey=locationPin(testString)
+
+    return tamperedBool, latSurvey, longSurvey

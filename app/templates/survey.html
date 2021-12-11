@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+
+<div class="row ">
+  <div class='col-xl-9'> 
+    <div id="map" style="height: 400px; width:95%"></div>
+  </div>
+  
+</div>
+ 
+
+
+{% endblock %}
+{% block scripts %} 
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script type=text/javascript>
+  $(document).ready(function(){
+    var container = L.DomUtil.get('map'); 
+  
+    var map = L.map('map').setView([-1.2528, 37.0724], 15);
+
+    var layer = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>'
+          });
+    var coordinates=window.location.href+"/process";
+    console.log(coordinates);
+   
+
+    var locations=[];
+    fetch(coordinates)
+    .then(function (response) {
+    
+      return response.text();
+
+    }).then(function(body) {
+      var obj=JSON.parse(body);
+      var myAdd={};
+      var addresses=obj.dataDict;
+      
+      var l=addresses.length;
+      for(i=0; i<l; i++){
+        myAdd={
+              position:{
+                  lat:parseFloat(obj.dataDict[i].lat),
+                  long:parseFloat(obj.dataDict[i].long)
+                  },
+              device:(obj.dataDict[i].device),
+              tampered:obj.dataDict[i].tampered
+            };
+        locations.push(myAdd);
+      
+      }
+      locations.forEach(function(feature){
+        //var title=feature.device
+       
+        L.marker([feature.position.lat, feature.position.long]).addTo(map).bindPopup(feature.device).openPopup();
+      });
+      }).catch(function(){
+
+      });
+
+
+        // Now add the layer onto the map
+      map.addLayer(layer);
+
+  });
+</script>
+    
+{% endblock %}

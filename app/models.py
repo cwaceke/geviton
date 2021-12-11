@@ -26,6 +26,22 @@ class Data(db.Model):
     def __repr__(self):
         return "<Data(device_id='{}',project='{}', time='{}', payload_data='{}')>"\
                 .format(self.device_id,self.project_name, self.time, self.payload)
+                
+class SurveyData(db.Model):
+    __tablename__='surveyData'
+    id=db.Column(db.Integer, primary_key=True)
+    project_name=db.Column(db.String(80),nullable=False)
+    device_id=db.Column(db.String(50))
+    time=db.Column(db.String(50))
+    payload=db.Column(db.String(50),nullable=False)
+    tampered=db.Column(db.Boolean)
+    latitude=db.Column(db.String(20))
+    longitude=db.Column(db.String(20))
+  
+
+    def __repr__(self):
+        return "SurveyData(device_id='{}',project='{}', time='{}', payload_data='{}')"\
+                .format(self.device_id,self.project_name, self.time, self.payload)
 
 ownership=db.Table('ownership', 
     db.Column('owner_id',db.Integer, db.ForeignKey('user.id', ondelete='CASCADE')),

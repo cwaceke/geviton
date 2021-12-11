@@ -2,12 +2,12 @@
 from app import app, db
 from flask import request, g, current_app, render_template, jsonify, flash, url_for, redirect,session
 import json
-from app.models import Data, User, Project
+from app.models import Data, User, Project, SurveyData
 from app.forms import  RegistrationDetails,ResetEmail, ResetPassword,  RegistrationDetails, ProjectRegistrationDetails, LoginDetails, ProjectDetails, InviteUser
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_breadcrumbs import register_breadcrumb
 from app.email import send_invite_email, send_reset_email
-from app.payloadDecode import getDate, locationPin, battery, level
+from app.payloadDecode import getDate, locationPin, battery, level, surveyDecode
 from flask_login import login_user, current_user, logout_user, login_required
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from functools import wraps
@@ -185,8 +185,7 @@ def customize():
                 if current_user.is_authenticated:
                     new_project=Project(project_name=projectName)
                     project_owner=User.query.filter_by(id=current_user.id).first()
-                    print(current_user)
-                    print(project_owner)
+    
                     new_project.users.append(project_owner)
                     db.session.add(new_project)
                     db.session.commit()
@@ -195,8 +194,26 @@ def customize():
                     flash("User not authenticated", 'danger')
                 
                 return render_template('index.html')
-                    #getting the base URL
-        
+
+            elif (deviceType=='landSurvey'):
+                base=request.url_root
+                base=base[:-1]
+            
+                #generate a callback URL for the client to use and flash it
+                message="The api callback URL is  " + base + url_for('confirmationLandSurvery', prjName=projectName)
+                flash(message, 'success')
+
+                if current_user.is_authenticated:
+                    new_project=Project(project_name=projectName)
+                    project_owner=User.query.filter_by(id=current_user.id).first()
+                    new_project.users.append(project_owner)
+                    db.session.add(new_project)
+                    db.session.commit()
+                    
+                else:
+                    flash("User not authenticated", 'danger')
+
+                return render_template('index.html')
     return render_template('customize.html', project_details=project_details)
 
     
@@ -263,11 +280,6 @@ def deleteProject(prjName):
 
 
 
-@app.route('/test', methods=['POST','GET'])
-def test():
-    dist_devices= [r.device_id for r in db.session.query(Data.device_id).distinct()]
-    return render_template('test.html', dist_devices=dist_devices)
-
 @app.route('/process', methods=['POST','GET'])
 def process():
     if request.method== 'POST':
@@ -311,6 +323,45 @@ def device(device_id):
     data=Data.query.order_by(Data.time.desc()).filter_by(device_id=device_id).limit(10)
     
     return render_template('device.html',data=data)
+@app.route('/survey/process', methods=['POST','GET'])
+def process_survey():
+    addresses = SurveyData.query.all()
+ 
+    location_dict=[]
+    for add in addresses:
+        location_data = {
+            "lat": add.latitude, 
+            "long": add.longitude, 
+            "device": add.device_id,
+            "tampered":add.tampered
+        }
+        location_dict.append(location_data)
+
+    return jsonify({'dataDict':location_dict})
+    
+
+
+@app.route('/survey')
+def survey ():
+    return render_template('survey.html')
+
+@app.route('/survey/confirmation/<prjName>', methods=['POST'])
+def confirmationLandSurvery(prjName):
+    
+    content=request.json
+    device_id=content['id']
+    dataString=content['data']
+    time=getDate()
+    #get the parameters and push them to a db
+
+    tamperPar, latPar, longPar=surveyDecode(dataString)
+
+    newSurveyData=SurveyData(project_name=prjName,device_id=device_id, time=time,payload=dataString, tampered=tamperPar, latitude=latPar, longitude=longPar)
+
+    db.session.add(newSurveyData)
+    db.session.commit()
+    
+    return ('', 200)
 
 
 
@@ -351,6 +402,6 @@ def confirmationWaterGPS(prjName):
 
     db.session.add(new_data)
     db.session.commit()
-    print (new_data)
+    
     return ('', 200)
 

@@ -10,8 +10,7 @@ class ProjectDetails(FlaskForm):
     device_type=SelectField('Device Type',[DataRequired()],
                 choices=[("", "-- select an option --"),
                     ('waterLevelGPS','Water Level with GPS'),
-                    ('waterLevel','Water level no GPS',),
-                    ('waterQlty','Water Quality')])
+                    ('landSurvey', 'Land Survey Beacons'),])
     
     project_name=StringField('Project Name',[DataRequired()]) 
     def validate_project_name(self, project_name):
