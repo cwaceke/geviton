@@ -14,8 +14,11 @@
 
 
 {% endblock %}
-{% block scripts %} 
+{% block scripts %}
+
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="{{url_for('static', filename='js/leaflet.awesome-markers.js')}}"></script> 
 <script type=text/javascript>
   $(document).ready(function(){
     var container = L.DomUtil.get('map'); 
@@ -54,9 +57,20 @@
       
       }
       locations.forEach(function(feature){
-        //var title=feature.device
-       
-        L.marker([feature.position.lat, feature.position.long]).addTo(map).bindPopup(feature.device).openPopup();
+        var  marker;
+        console.log(typeof(feature.tampered));
+        if (feature.tampered==true){
+          marker = L.AwesomeMarkers.icon({
+            icon: 'coffee',
+            markerColor: 'red'
+          });
+        } else if (feature.tampered==false){
+          marker = L.AwesomeMarkers.icon({
+            icon: 'coffee',
+            markerColor: 'blue'
+          });
+        }
+        L.marker([feature.position.lat, feature.position.long], {icon: marker}).addTo(map).bindPopup(feature.device).openPopup();
       });
       }).catch(function(){
 
