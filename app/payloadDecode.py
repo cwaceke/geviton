@@ -64,7 +64,7 @@ def surveyDecode( testString):
     tamperedInt=int(tampered, base=16)
     if (tamperedInt==31):
         tamperedBool=True
-    elif (tamperedInt==16):
+    elif (tamperedInt==15):
         tamperedBool=False
     #get the location also
     latSurvey, longSurvey=locationPin(testString)
