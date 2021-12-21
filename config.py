@@ -17,6 +17,7 @@ class Config(object):
     MAIL_USE_TLS = True
     MAIL_USERNAME = 'dashboardtester490@gmail.com'
     MAIL_PASSWORD = 'readmenow'
+    GOOGLEMAPS_KEY="AIzaSyDs-v8d35D9ctWlxnhzOnPvtKc2JAuGnYY"
 
 
 class ProductionConfig(Config):

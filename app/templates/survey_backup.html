@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+
+
+<div class="row ">
+  <div class='col-xl-9'> 
+    <div id="map" style="height: 400px; width:95%"></div>
+  </div>
+  
+</div>
+ 
+
+
+{% endblock %}
+{% block scripts %}
+
+<script src="https://js.api.here.com/v3/3.1/mapsjs-core.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://js.api.here.com/v3/3.1/mapsjs-service.js" type="text/javascript" charset="utf-8"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script src="{{url_for('static', filename='js/leaflet.awesome-markers.js')}}"></script> 
+<script type=text/javascript>
+  $(document).ready(function(){
+    var platform = new H.service.Platform({
+        'apikey': 'BVCCCqJBjhzeCGYFVCFul7i891ocCPi5heL9YzbQ1sA'
+      	});  
+	
+	const lat = -1.2528;
+	const long = 37.0724;
+    
+	// Obtain the default map types from the platform object
+    var maptypes = platform.createDefaultLayers();
+
+    // Instantiate (and display) a map object:
+    var map = new H.Map(
+    document.getElementById('map'),
+    maptypes.vector.normal.map,
+    {
+        zoom: 10,
+        center: { lat: lat, lng: long }  
+    });
+    
+	var marker = new H.map.Marker({ lat: lat, lng: long });
+		
+	// Add the marker to the map:
+	map.addObject(marker);
+		
+
+  });
+</script>
+    
+{% endblock %}

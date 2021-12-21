@@ -7,7 +7,7 @@ import os
 from flask_login import LoginManager
 from flask_breadcrumbs import Breadcrumbs
 from flask_mail import Mail
-
+from flask_googlemaps import GoogleMaps, googlemap
 
 app=Flask(__name__)
 app.config.from_object(os.environ['APP_SETTINGS'])
@@ -27,7 +27,7 @@ login_manager.login_view = 'login'
 
 breadcrumbs=Breadcrumbs(app=app)
 
-
+googlemaps=GoogleMaps(app)
 from app import routes
 from app import models
 

@@ -11,7 +11,7 @@ from app.payloadDecode import getDate, locationPin, battery, level, surveyDecode
 from flask_login import login_user, current_user, logout_user, login_required
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from functools import wraps
-
+from flask_googlemaps import Map
 def admin_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
@@ -323,27 +323,39 @@ def device(device_id):
     data=Data.query.order_by(Data.time.desc()).filter_by(device_id=device_id).limit(10)
     
     return render_template('device.html',data=data)
-@app.route('/survey/process', methods=['POST','GET'])
-def process_survey():
+@app.route('/survey', methods=['POST'])
+def survey():
     addresses = SurveyData.query.all()
- 
     location_dict=[]
     for add in addresses:
+        icon='http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+        if (add.tampered==True):
+            icon='http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+        else:
+            icon='http://maps.google.com/mapfiles/ms/icons/green-dot.png'
+    
         location_data = {
+            "icon": icon,
             "lat": add.latitude, 
-            "long": add.longitude, 
-            "device": add.device_id,
-            "tampered":add.tampered
+            "lng": add.longitude,
+            "infobox": "<b>add.device_id</b>",
         }
         location_dict.append(location_data)
 
-    return jsonify({'dataDict':location_dict})
+    mymap=Map(
+        identifier="view-side",
+        style="height:700px;width:700px;margin:0;",
+        lat=-1.2528,
+        lng=37.0724,
+        fullscreenControl=False,
+        markers=location_dict
+    )
+    
+    return render_template('survey.html',mymap=mymap)
     
 
 
-@app.route('/survey')
-def survey ():
-    return render_template('survey.html')
+
 
 @app.route('/survey/confirmation/<prjName>', methods=['POST'])
 def confirmationLandSurvery(prjName):
