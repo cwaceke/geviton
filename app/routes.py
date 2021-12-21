@@ -323,9 +323,10 @@ def device(device_id):
     data=Data.query.order_by(Data.time.desc()).filter_by(device_id=device_id).limit(10)
     
     return render_template('device.html',data=data)
-@app.route('/survey', methods=['POST'])
+@app.route('/survey', methods=['POST','GET'])
 def survey():
     addresses = SurveyData.query.all()
+    add_2=db.session.query(SurveyData.device_id).distinct()
     location_dict=[]
     for add in addresses:
         icon='http://maps.google.com/mapfiles/ms/icons/green-dot.png'
@@ -338,13 +339,13 @@ def survey():
             "icon": icon,
             "lat": add.latitude, 
             "lng": add.longitude,
-            "infobox": "<b>add.device_id</b>",
+            "infobox": add.device_id,
         }
         location_dict.append(location_data)
 
     mymap=Map(
         identifier="view-side",
-        style="height:700px;width:700px;margin:0;",
+        style="height:700px;width:100%;margin:0;",
         lat=-1.2528,
         lng=37.0724,
         fullscreenControl=False,
