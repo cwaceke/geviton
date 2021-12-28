@@ -16,8 +16,8 @@ class Config(object):
     MAIL_PORT = 587
     MAIL_USE_TLS = True
     MAIL_USERNAME = 'dashboardtester490@gmail.com'
-    MAIL_PASSWORD = 'readmenow'
-    GOOGLEMAPS_KEY="AIzaSyDs-v8d35D9ctWlxnhzOnPvtKc2JAuGnYY"
+    MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
+    GOOGLEMAPS_KEY=os.environ.get('GOOGLEMAPS_API')
 
 
 class ProductionConfig(Config):
