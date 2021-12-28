@@ -1,4 +1,5 @@
 
+from sqlalchemy.sql.operators import distinct_op
 from app import app, db
 from flask import request, g, current_app, render_template, jsonify, flash, url_for, redirect,session
 import json
@@ -325,31 +326,39 @@ def device(device_id):
     return render_template('device.html',data=data)
 @app.route('/survey', methods=['POST','GET'])
 def survey():
-    addresses = SurveyData.query.all()
-    add_2=db.session.query(SurveyData.device_id).distinct()
+    dist_projects= [r.device_id for r in db.session.query(SurveyData.device_id).distinct()]
+    addresses=[]
+    for dist_proj in dist_projects:
+        address = SurveyData.query.order_by(SurveyData.time.desc()).filter_by(device_id=dist_proj).first()
+        addresses.append(address)
+    
     location_dict=[]
+    print(addresses)
     for add in addresses:
         icon='http://maps.google.com/mapfiles/ms/icons/green-dot.png'
         if (add.tampered==True):
-            icon='http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+            icon='http://maps.google.com/mapfiles/ms/icons/red-dot.png'
         else:
             icon='http://maps.google.com/mapfiles/ms/icons/green-dot.png'
-    
+
         location_data = {
             "icon": icon,
+            "label":"x",
             "lat": add.latitude, 
             "lng": add.longitude,
             "infobox": add.device_id,
+            
         }
         location_dict.append(location_data)
-
+    print(location_dict)
     mymap=Map(
         identifier="view-side",
         style="height:700px;width:100%;margin:0;",
         lat=-1.2528,
         lng=37.0724,
         fullscreenControl=False,
-        markers=location_dict
+        markers=location_dict,
+        fit_markers_to_bounds = True
     )
     
     return render_template('survey.html',mymap=mymap)
