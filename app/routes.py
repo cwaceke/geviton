@@ -324,16 +324,22 @@ def device(device_id):
     data=Data.query.order_by(Data.time.desc()).filter_by(device_id=device_id).limit(10)
     
     return render_template('device.html',data=data)
+
+
+    
+
+
 @app.route('/survey', methods=['POST','GET'])
 def survey():
-    dist_projects= [r.device_id for r in db.session.query(SurveyData.device_id).distinct()]
+    
+    dist_devices= [r.device_id for r in db.session.query(SurveyData.device_id).distinct()]
     addresses=[]
-    for dist_proj in dist_projects:
+    for dist_proj in dist_devices:
         address = SurveyData.query.order_by(SurveyData.time.desc()).filter_by(device_id=dist_proj).first()
         addresses.append(address)
     
     location_dict=[]
-    print(addresses)
+   
     for add in addresses:
         icon='http://maps.google.com/mapfiles/ms/icons/green-dot.png'
         if (add.tampered==True):
@@ -343,27 +349,36 @@ def survey():
 
         location_data = {
             "icon": icon,
-            "label":"x",
+            "label":"X",
             "lat": add.latitude, 
             "lng": add.longitude,
             "infobox": add.device_id,
             
         }
         location_dict.append(location_data)
-    print(location_dict)
+    if request.method=='POST':
+        marker=request.form['device']
+        print(marker)
+        markerLoc= SurveyData.query.order_by(SurveyData.time.desc()).filter_by(device_id=marker).first()
+        center_lat=markerLoc.latitude
+        center_lng=markerLoc.longitude
+    else:
+        center_lat=-1.2528
+        center_lng=37.0724
+    print(center_lng, center_lat)
     mymap=Map(
         identifier="view-side",
         style="height:700px;width:100%;margin:0;",
-        lat=-1.2528,
-        lng=37.0724,
+        lat=center_lat,
+        lng=center_lng,
         fullscreenControl=False,
-        markers=location_dict,
-        fit_markers_to_bounds = True
+        markers=location_dict
     )
-    
-    return render_template('survey.html',mymap=mymap)
-    
+  
 
+    
+    return render_template('survey.html',mymap=mymap,dist_devices=dist_devices)
+    
 
 
 

@@ -6,8 +6,19 @@
 
 <div class="row ">
   <div class='col-xl-9'> 
-    <h2>First map generated in view</h2>
+    <h2>Map Showing All Devices</h2>
     {{mymap.html}}
+  </div>
+  <div class='col-xl-3'>
+    <table id="dataTable" class="table text-center table-borderless mt-5 pt-4" >
+      <tbody>
+          {% for dist_device in dist_devices %}
+              <tr>
+                  <td><button type="button" class="btn btn-primary rounded devices px-2" id='{{dist_device}}'>{{ dist_device}}</button></td>
+                 
+          {% endfor %}
+      </tbody>    
+    </table>
   </div>
   
 </div>
@@ -17,4 +28,35 @@
 {% endblock %}
 {% block scripts %}
 {{mymap.js}}
+<script type=text/javascript>
+$(document).ready(function(){
+  $('button.devices').click(function() {
+      
+      var devId= this.id;
+        $.ajax({
+            data :{device: devId},
+            type : 'POST',
+            url : '/survey',
+            success: function (response) {
+                console.log("Success")
+            }
+            })
+    });
+
+    $('#dataTable').DataTable({
+      "dom": '<"top"f>rt<"bottom"lp><"clear">',
+      columns:[
+          {orderable:false}],
+      "paging":  true,
+      "info": false,
+      "pagingType": "numbers",
+      "ordering": false,
+      search: {
+          return: true
+      }  
+    });
+  });
+
+</script>
+
 {%endblock%}
