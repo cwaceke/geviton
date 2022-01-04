@@ -7,17 +7,15 @@
 <div class="row ">
   <div class='col-xl-9'> 
     <h2>Map Showing All Devices</h2>
-    {{mymap.html}}
+    <div id="map" style="height: 700px; width: 95%;"></div>
   </div>
   <div class='col-xl-3'>
     <table id="dataTable" class="table text-center table-borderless mt-5 pt-4" >
-      <tbody>
-          {% for dist_device in dist_devices %}
-              <tr>
-                  <td><button type="button" class="btn btn-primary rounded devices px-2" id='{{dist_device}}'>{{ dist_device}}</button></td>
-                 
-          {% endfor %}
-      </tbody>    
+      {% for dist_device in dist_devices %}
+        <tr>
+            <td><button type="button" class="btn btn-primary rounded devices px-3" id='{{dist_device}}' >{{ dist_device}}</button></td>
+                     
+      {% endfor %}
     </table>
   </div>
   
@@ -27,22 +25,72 @@
 
 {% endblock %}
 {% block scripts %}
-{{mymap.js}}
-<script type=text/javascript>
+<script>
+var map;
+function initMap() {
+  
+  map = new google.maps.Map(document.getElementById('map'), {
+    center: {lat: -1.286389, lng: 36.817223},
+    zoom: 6
+  });
+
+  var coordinates=window.location.href+"/process";
+ 
+   
+  var locations=[];
+  fetch(coordinates)
+  .then(function (response) {
+    
+    return response.text();
+
+  }).then(function(body) {
+    var obj=JSON.parse(body);
+    var myAdd={};
+    var addresses=obj.dataDict;
+    var infowindow = new google.maps.InfoWindow(); 
+    var l=addresses.length;
+    var marker, i;
+    for(i=0; i<l; i++){
+        var markerPosition={lat: parseFloat(obj.dataDict[i].lat),lng: parseFloat(obj.dataDict[i].long)};
+        marker= new google.maps.Marker({
+          position:markerPosition,
+          map:map,
+          title:obj.dataDict[i].device,
+          icon:'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+        });
+        google.maps.event.addListener(marker, 'click', (function(marker, i) {
+        return function() {
+          infowindow.setContent(obj.dataDict[i].device);
+          infowindow.open(map, marker);
+        }
+      })(marker, i));
+    
+    }
+    }).catch(function(){
+
+    });
+  }
+
+function newLocation(newLat,newLng)
+{
+  var center=new google.maps.LatLng(newLat,newLng)
+	map.panTo(center);
+}
 $(document).ready(function(){
-  $('button.devices').click(function() {
+    $('button.devices').click(function() {
       
       var devId= this.id;
         $.ajax({
             data :{device: devId},
             type : 'POST',
-            url : '/survey',
+            url : '/process/marker',
             success: function (response) {
-                console.log("Success")
+                newLocation(response.lat,response.lng);
+                
             }
             })
     });
-
+  
     $('#dataTable').DataTable({
       "dom": '<"top"f>rt<"bottom"lp><"clear">',
       columns:[
@@ -58,5 +106,6 @@ $(document).ready(function(){
   });
 
 </script>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDs-v8d35D9ctWlxnhzOnPvtKc2JAuGnYY&callback=initMap&libraries=&v=weekly"async defer></script>
 
 {%endblock%}

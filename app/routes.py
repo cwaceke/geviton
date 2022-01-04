@@ -12,7 +12,6 @@ from app.payloadDecode import getDate, locationPin, battery, level, surveyDecode
 from flask_login import login_user, current_user, logout_user, login_required
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from functools import wraps
-from flask_googlemaps import Map
 def admin_required(func):
     @wraps(func)
     def decorated_view(*args, **kwargs):
@@ -311,7 +310,7 @@ def process():
 
             dataDict={"device":data.device_id,"time":data.time,"data":data.payload,"latitude":latCurrent,"longitude":longCurrent,"level":levelCurrent,"battery":data.battery}
 
-            dataJson=json.dumps(dataDict)
+            #dataJson=json.dumps(dataDict)
             
 
             return jsonify(dataDict)
@@ -325,59 +324,49 @@ def device(device_id):
     
     return render_template('device.html',data=data)
 
-
-    
-
-
-@app.route('/survey', methods=['POST','GET'])
-def survey():
-    
+@app.route('/survey/process', methods=['POST','GET'])
+def process_survey():
+        
     dist_devices= [r.device_id for r in db.session.query(SurveyData.device_id).distinct()]
     addresses=[]
     for dist_proj in dist_devices:
         address = SurveyData.query.order_by(SurveyData.time.desc()).filter_by(device_id=dist_proj).first()
         addresses.append(address)
-    
+ 
     location_dict=[]
-   
     for add in addresses:
-        icon='http://maps.google.com/mapfiles/ms/icons/green-dot.png'
-        if (add.tampered==True):
-            icon='http://maps.google.com/mapfiles/ms/icons/red-dot.png'
-        else:
-            icon='http://maps.google.com/mapfiles/ms/icons/green-dot.png'
-
         location_data = {
-            "icon": icon,
-            "label":"X",
             "lat": add.latitude, 
-            "lng": add.longitude,
-            "infobox": add.device_id,
-            
+            "long": add.longitude, 
+            "device": add.device_id,
+            "tampered":add.tampered
         }
         location_dict.append(location_data)
-    if request.method=='POST':
-        marker=request.form['device']
-        print(marker)
-        markerLoc= SurveyData.query.order_by(SurveyData.time.desc()).filter_by(device_id=marker).first()
-        center_lat=markerLoc.latitude
-        center_lng=markerLoc.longitude
-    else:
-        center_lat=-1.2528
-        center_lng=37.0724
-    print(center_lng, center_lat)
-    mymap=Map(
-        identifier="view-side",
-        style="height:700px;width:100%;margin:0;",
-        lat=center_lat,
-        lng=center_lng,
-        fullscreenControl=False,
-        markers=location_dict
-    )
-  
 
+    return jsonify({'dataDict':location_dict})
     
-    return render_template('survey.html',mymap=mymap,dist_devices=dist_devices)
+@app.route('/process/marker', methods=['POST','GET'])
+def processMarker():
+    device=request.form['device']
+    if device:
+        device=SurveyData.query.order_by(SurveyData.time.desc()).filter_by(device_id=device).first()
+
+        location_data={
+            "lat":device.latitude,
+            "lng":device.longitude
+        }
+        dataJson=json.dumps(location_data)
+            
+
+        return jsonify(location_data)
+    return jsonify({'error' : 'Missing data!'})
+    
+
+
+@app.route('/survey', methods=['POST','GET'])
+def survey():
+    dist_devices= [r.device_id for r in db.session.query(SurveyData.device_id).distinct()]
+    return render_template('survey.html', dist_devices=dist_devices)
     
 
 

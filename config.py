@@ -17,9 +17,7 @@ class Config(object):
     MAIL_USE_TLS = True
     MAIL_USERNAME = 'dashboardtester490@gmail.com'
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    GOOGLEMAPS_KEY=os.environ.get('GOOGLEMAPS_API')
-
-
+    
 class ProductionConfig(Config):
     DEBUG = False
     FLASK_ENV='production'
