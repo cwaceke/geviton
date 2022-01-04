@@ -49,21 +49,26 @@ function initMap() {
     var addresses=obj.dataDict;
     var infowindow = new google.maps.InfoWindow(); 
     var l=addresses.length;
-    var marker, i;
+    var marker, i, icon;
+    if (addresses.tampered==true){
+        icon='http://maps.google.com/mapfiles/ms/icons/red-dot.png'
+    } else if (addresses.tampered==false){
+        icon='http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+    }
     for(i=0; i<l; i++){
-        var markerPosition={lat: parseFloat(obj.dataDict[i].lat),lng: parseFloat(obj.dataDict[i].long)};
-        marker= new google.maps.Marker({
-          position:markerPosition,
-          map:map,
-          title:obj.dataDict[i].device,
-          icon:'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-        });
-        google.maps.event.addListener(marker, 'click', (function(marker, i) {
-        return function() {
-          infowindow.setContent(obj.dataDict[i].device);
-          infowindow.open(map, marker);
-        }
-      })(marker, i));
+      var markerPosition={lat: parseFloat(obj.dataDict[i].lat),lng: parseFloat(obj.dataDict[i].long)};
+      marker= new google.maps.Marker({
+        position:markerPosition,
+        map:map,
+        title:obj.dataDict[i].device,
+        icon:icon
+      });
+      google.maps.event.addListener(marker, 'click', (function(marker, i) {
+      return function() {
+        infowindow.setContent(obj.dataDict[i].device);
+        infowindow.open(map, marker);
+      }
+    })(marker, i));
     
     }
     }).catch(function(){
